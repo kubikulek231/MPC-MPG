@@ -1,0 +1,44 @@
+﻿cmake_minimum_required(VERSION 3.30)
+project(MpgProject)
+
+# Find OpenGL package
+find_package(OpenGL REQUIRED)
+
+# Restore NuGet packages
+execute_process(
+    COMMAND nuget restore ${CMAKE_SOURCE_DIR}/Project.sln
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# Ensure that CMake runs each time before building
+set(CMAKE_SUPPRESS_REGENERATION 0)
+
+# Locate NuGet-installed GLUT
+set(NUGET_PACKAGE_PATH "${CMAKE_SOURCE_DIR}/packages")
+set(GLUT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/build/packages/nupengl.core.0.1.0.1/build/native/include")
+set(GLUT_LIB_DIR "${CMAKE_SOURCE_DIR}/build/packages/nupengl.core.0.1.0.1/build/native/lib/x64")
+set(GLUT_DLL_DIR "${CMAKE_SOURCE_DIR}/build/packages/nupengl.core.redist.0.1.0.1/build/native/bin/x64")
+
+# Include directories
+include_directories(${GLUT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/include)
+link_directories(${GLUT_LIB_DIR})
+
+# Collect all files
+file(GLOB SOURCES "src/cv5.cpp")
+file(GLOB HEADERS "include/*.h")
+
+# Add executable
+add_executable(MPG ${SOURCES} ${HEADERS})
+
+# Message for binary directory
+message(STATUS "CMake binary directory: ${CMAKE_BINARY_DIR}")
+
+# Link libraries
+target_link_libraries(MPG OpenGL::GL "${GLUT_LIB_DIR}/freeglut.lib")
+
+# Copy freeglut.dll to the output directory (where the executable is built)
+add_custom_command(TARGET MPG POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${GLUT_DLL_DIR}/freeglut.dll"
+    ${CMAKE_BINARY_DIR}  # Copies to the output directory of the executable
+)
