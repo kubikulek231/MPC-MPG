@@ -10,6 +10,5 @@ CMakeCache.txt
 Makefile
 cmake_install.cmake
 *.cmake
-
 # Ignore build files
-build/MPG.dir/
+build/*/
